@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="pragma" content="no-cache" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>转盘猜奖</title>
+	<script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+</head>
+<body>
+
+<style type="text/css">
+  
+  *{padding:0; margin:0;}
+  .turntableCont{width:300px; height:300px; background-color:#f12; 
+       border-radius:50%;margin:50px auto;position: relative;
+   }
+  .turntable{width:50px; height:50px; background-color:#abcdef;
+             border-radius:50%;position:absolute;
+             top:50%; left:50%; margin-left:-25px;
+             margin-top:-25px;
+             transform: rotate(0deg);
+
+   }
+   .trans{transition:all 3s;}
+   .turntable:before{content: ""; width:0; height:0px;
+             border-left: 10px solid transparent;
+             border-right: 10px solid transparent;
+             border-bottom: 20px solid #abcdef;
+             position: absolute;
+             left:15px;
+             top:-16px;
+    }
+</style>
+
+ <div class="turntableCont">
+  <div class="turntable"></div>
+ </div>
+ <button class="but">转盘点击</button>
+ <script>
+
+    /*通过对大圆分区小圆对角度来具体展示用户获得什么奖品
+    //proportion分割块数必须同rotationArray与contentArray个数相同
+    */ 
+     let  body=document.body || document.documentElement,
+          style=body.style;
+     
+      /*
+     *@transitionEnd 获取浏览器transitionend事件
+      */
+     let  transitionEnd=(function(){
+          let transEndEventNames = {
+              WebkitTransition : 'webkitTransitionEnd',
+              MozTransition    : 'transitionend',
+              OTransition      : 'oTransitionEnd otransitionend',
+              transition       : 'transitionend'
+            }
+          for(let name in transEndEventNames){
+            if(typeof style[name] === "string"){
+              return transEndEventNames[name]
+            }
+          }
+        })();
+
+      /*
+      * finalRotation return string || object
+      * @deg number //轮盘旋转最终角度
+      * @contentArray stringArray || objectArray //转盘获奖内容数组
+      * @proportion number default=9 //转盘分割块数 
+       */
+
+     let finalRotation=function(deg,contentArray,proportion){
+           let scale=360/proportion || 360/9;//分割之后每块占多少度数
+           let proportiona=Math.ceil(deg/scale)-1;//获得匹配数组内容数字
+           return contentArray[proportiona];
+     }
+
+     /**
+      * turntable 转盘点击事件函数通过修改rotationArray与contentArray来改变具体行为
+      *@options.dom  element 具体的旋转元素 
+      *@options.addclass element 添加的样式
+      *@options.rotationArray numberArray 旋转角度数组
+      *@options.contentArray stringArray || objectArray 返回具体的内容
+      */
+     let turntable=function(options){
+         let def={
+           dom:".turntable",
+           addclass:"trans",
+           rotationArray:[1640,1580,1780,1640,1580,1580,1640,1580,1780],
+           contentArray:["a","b","c","d","f","g","h","i","j","k"],
+           callBack:function(){}
+         };
+         let opt=$.extend({},def,options);
+         let target=document.querySelector(opt.dom);
+         let randomNum=Math.floor(Math.random()*opt.rotationArray.length);
+         let angle=opt.rotationArray[randomNum];
+         
+          if(!$(opt.dom).hasClass(opt.addclass)){
+             $(opt.dom).addClass(opt.addclass).css("transform","rotate("+angle+"deg)");
+          }else{
+             return false;
+          }
+
+          setTimeout(function(){
+           let modeNum=angle%360;
+           $(opt.dom).removeClass(opt.addclass).css("transform","rotate("+modeNum+"deg)");
+           let textCont=finalRotation(modeNum,opt.contentArray);
+           opt.callBack(textCont);
+          },3000)
+         
+     }
+     
+   $(".but").on("click",function(){
+       turntable({callBack:function(textCont){
+           console.log("恭喜你获得"+textCont)
+       }})
+   })
+
+ </script>
+
+
+</body>
+</html>
